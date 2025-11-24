@@ -3,7 +3,9 @@ mod handler;
 
 use traq_ws_bot::{builder, utils::create_configuration};
 
-use crate::handler::{handle_direct_message_created, handle_message_created};
+use crate::handler::{
+    handle_bot_message_stamps_updated, handle_direct_message_created, handle_message_created,
+};
 
 #[tokio::main]
 async fn main() {
@@ -14,6 +16,7 @@ async fn main() {
         .insert_resource(conf)
         .on_direct_message_created_with_resource(handle_direct_message_created)
         .on_message_created_with_resource(handle_message_created)
+        .on_bot_message_stamps_updated_with_resource(handle_bot_message_stamps_updated)
         .build();
 
     bot.start().await.unwrap();
