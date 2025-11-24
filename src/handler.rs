@@ -6,7 +6,7 @@ use traq_ws_bot::{
     openapi::{
         apis::{
             configuration::Configuration,
-            message_api::{delete_message, post_message},
+            message_api::{delete_message, edit_message, post_message},
         },
         models::PostMessageRequest,
     },
@@ -60,6 +60,15 @@ pub async fn handle_bot_message_stamps_updated(
         .iter()
         .any(|stamp| stamp.stamp_id == WASTEBASKET && stamp.user_id == ME && stamp.count > 0)
     {
+        let _ = edit_message(
+            &configuration,
+            &event.message_id,
+            Some(PostMessageRequest {
+                content: "\u{200b}".to_string(),
+                embed: Some(false),
+            }),
+        )
+        .await;
         let _ = delete_message(&configuration, &event.message_id).await;
     }
 }
