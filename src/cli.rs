@@ -1,3 +1,4 @@
+use ac_library::ModInt998244353;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -10,12 +11,14 @@ pub struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     Ping,
+    Inv { val: u32 },
 }
 
 impl Cli {
     pub fn run(&self) -> String {
         match self.command {
             Commands::Ping => "pong".to_string(),
+            Commands::Inv { val } => ModInt998244353::new(val).inv().to_string(),
         }
     }
 }
