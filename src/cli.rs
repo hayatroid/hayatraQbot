@@ -10,15 +10,17 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    Ping,
+    /// Retruns the multiplicative inverse of `self`.
     Inv { val: u32 },
+    /// Returns `self` to the power of `n`.
+    Pow { val: u32, n: u64 },
 }
 
 impl Cli {
     pub fn run(&self) -> String {
         match self.command {
-            Commands::Ping => "pong".to_string(),
             Commands::Inv { val } => ModInt998244353::new(val).inv().to_string(),
+            Commands::Pow { val, n } => ModInt998244353::new(val).pow(n).to_string(),
         }
     }
 }
