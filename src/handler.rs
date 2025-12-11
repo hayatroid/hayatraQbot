@@ -15,13 +15,14 @@ use traq_ws_bot::{
 use crate::cli::Cli;
 
 pub async fn handle_message_created(event: MessageCreated, configuration: Arc<Configuration>) {
-    let content = match Cli::try_parse_from(event.message.plain_text.split_whitespace()) {
-        Ok(cli) => cli.run().await,
+    let message = Arc::new(event.message);
+    let content = match Cli::try_parse_from(message.plain_text.split_whitespace()) {
+        Ok(cli) => cli.run(message.clone()).await,
         Err(e) => format!("```txt\n{}\n```", e.render().to_string().trim()),
     };
     let _ = post_message(
         &configuration,
-        &event.message.channel_id,
+        &message.channel_id,
         Some(PostMessageRequest {
             content,
             embed: Some(false),
@@ -34,15 +35,16 @@ pub async fn handle_direct_message_created(
     event: DirectMessageCreated,
     configuration: Arc<Configuration>,
 ) {
+    let message = Arc::new(event.message);
     let content = match Cli::try_parse_from(
-        format!("@BOT_hayatroid {}", event.message.plain_text).split_whitespace(),
+        format!("@BOT_hayatroid {}", message.plain_text).split_whitespace(),
     ) {
-        Ok(cli) => cli.run().await,
+        Ok(cli) => cli.run(message.clone()).await,
         Err(e) => format!("```txt\n{}\n```", e.render().to_string().trim()),
     };
     let _ = post_message(
         &configuration,
-        &event.message.channel_id,
+        &message.channel_id,
         Some(PostMessageRequest {
             content,
             embed: Some(false),

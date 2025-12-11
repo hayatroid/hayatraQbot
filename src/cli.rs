@@ -1,10 +1,12 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, sync::Arc};
 
 use ac_library::ModInt998244353;
 use clap::{Parser, Subcommand};
 use itertools::Itertools;
 use rand::seq::IndexedRandom;
+use serde::Deserialize;
 use tokio::time::{Duration, timeout};
+use traq_ws_bot::events::common::Message;
 
 #[derive(Parser)]
 pub struct Cli {
@@ -29,12 +31,14 @@ enum Commands {
     Pow { base: i128, exp: u64 },
     /// Returns the prime factors of `val`.
     Factorize { val: u64 },
+    /// Returns the rating of AtCoder algo.
+    Rating,
 }
 
 impl Cli {
-    pub async fn run(&self) -> String {
+    pub async fn run(&self, message: Arc<Message>) -> String {
         let cmd = self.command.clone();
-        let mut handle = tokio::spawn(async { Self::execute(cmd).await });
+        let mut handle = tokio::spawn(async { Self::execute(cmd, message).await });
         match timeout(Duration::from_secs(2), &mut handle).await {
             Ok(join_res) => match join_res {
                 Ok(res) => res,
@@ -57,7 +61,7 @@ impl Cli {
             }
         }
     }
-    async fn execute(cmd: Commands) -> String {
+    async fn execute(cmd: Commands, message: Arc<Message>) -> String {
         match cmd {
             Commands::Choose { items } => {
                 let mut rng = rand::rng();
@@ -92,6 +96,50 @@ impl Cli {
                     .join(" \\times ");
                 format!("${}$", res)
             }
+            Commands::Rating => {
+                let url = format!("https://portfolio.trap.jp/api/v1/users/{}", message.user.id);
+                let portfolio = reqwest::get(url)
+                    .await
+                    .unwrap()
+                    .json::<Portfolio>()
+                    .await
+                    .unwrap();
+                if let Some(account) = portfolio.accounts.iter().find(|x| x.r#type == 8) {
+                    let url = format!(
+                        "https://atcoder-badges.now.sh/api/atcoder/json/{}",
+                        account.display_name
+                    );
+                    let badge = reqwest::get(url)
+                        .await
+                        .unwrap()
+                        .json::<Badge>()
+                        .await
+                        .unwrap();
+                    format!("$\\color{{{}}}\\textbf{{{}}}$", badge.color, badge.message)
+                } else {
+                    "[traPortfolio に AtCoder ID を紐づけなさ～～～い！！！](https://portfolio-admin.trap.jp/user/accounts)".to_string()
+                }
+            }
         }
     }
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Portfolio {
+    accounts: Vec<PortfolioAccount>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PortfolioAccount {
+    display_name: String,
+    r#type: i32,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct Badge {
+    message: String,
+    color: String,
 }
