@@ -8,7 +8,7 @@ pub struct Cli {
     command: Commands,
 }
 
-#[derive(Subcommand)]
+#[derive(Subcommand, Clone)]
 enum Commands {
     /// Returns the multiplicative inverse of `val`.
     Inv { val: u64 },
@@ -25,8 +25,27 @@ enum Commands {
 }
 
 impl Cli {
-    pub fn run(&self) -> String {
-        match self.command {
+    pub async fn run(&self) -> String {
+        let cmd = self.command.clone();
+        let handle = tokio::spawn(async { Self::execute(cmd) });
+        match handle.await {
+            Ok(res) => res,
+            Err(e) => {
+                if e.is_panic() {
+                    let e = e.into_panic();
+                    if let Some(msg) = e.downcast_ref::<&str>() {
+                        return format!("```txt\n{}\n```", msg.trim());
+                    }
+                    if let Some(msg) = e.downcast_ref::<String>() {
+                        return format!("```txt\n{}\n```", msg.trim());
+                    }
+                }
+                ":internal_error:".to_string()
+            }
+        }
+    }
+    fn execute(cmd: Commands) -> String {
+        match cmd {
             Commands::Inv { val } => ModInt998244353::new(val).inv().to_string(),
             Commands::Add { lhs, rhs } => (ModInt998244353::new(lhs) + rhs).to_string(),
             Commands::Sub { lhs, rhs } => (ModInt998244353::new(lhs) - rhs).to_string(),

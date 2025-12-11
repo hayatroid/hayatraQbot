@@ -16,8 +16,8 @@ use crate::cli::Cli;
 
 pub async fn handle_message_created(event: MessageCreated, configuration: Arc<Configuration>) {
     let content = match Cli::try_parse_from(event.message.plain_text.split_whitespace().skip(1)) {
-        Ok(cli) => cli.run(),
-        Err(e) => format!("```\n{}```", e.render()),
+        Ok(cli) => cli.run().await,
+        Err(e) => format!("```txt\n{}\n```", e.render().to_string().trim()),
     };
     let _ = post_message(
         &configuration,
@@ -35,8 +35,8 @@ pub async fn handle_direct_message_created(
     configuration: Arc<Configuration>,
 ) {
     let content = match Cli::try_parse_from(event.message.plain_text.split_whitespace()) {
-        Ok(cli) => cli.run(),
-        Err(e) => format!("```\n{}```", e.render()),
+        Ok(cli) => cli.run().await,
+        Err(e) => format!("```txt\n{}\n```", e.render().to_string().trim()),
     };
     let _ = post_message(
         &configuration,
