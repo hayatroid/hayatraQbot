@@ -1,5 +1,8 @@
+use std::collections::BTreeMap;
+
 use ac_library::ModInt998244353;
 use clap::{Parser, Subcommand};
+use itertools::Itertools;
 
 #[derive(Parser)]
 #[command(name = "@BOT_hayatroid", no_binary_name = true)]
@@ -22,6 +25,8 @@ enum Commands {
     Div { lhs: i128, rhs: i128 },
     /// Returns `base` to the power of `exp`.
     Pow { base: i128, exp: u64 },
+    /// Returns the prime factors of `val`.
+    Factorize { val: u64 },
 }
 
 impl Cli {
@@ -52,6 +57,24 @@ impl Cli {
             Commands::Mul { lhs, rhs } => (ModInt998244353::new(lhs) * rhs).to_string(),
             Commands::Div { lhs, rhs } => (ModInt998244353::new(lhs) / rhs).to_string(),
             Commands::Pow { base, exp } => ModInt998244353::new(base).pow(exp).to_string(),
+            Commands::Factorize { val } => {
+                let mut res = BTreeMap::new();
+                let mut tmp = val;
+                for i in (2..).take_while(|i| i * i <= val) {
+                    while tmp % i == 0 {
+                        *res.entry(i).or_insert(0) += 1;
+                        tmp /= i;
+                    }
+                }
+                if tmp > 1 {
+                    *res.entry(tmp).or_insert(0) += 1;
+                }
+                let res = res
+                    .iter()
+                    .map(|(base, exp)| format!("{}^{{{}}}", base, exp))
+                    .join(" \\times ");
+                format!("${}$", res)
+            }
         }
     }
 }
