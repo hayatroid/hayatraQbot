@@ -16,19 +16,15 @@ pub struct Cli {
 enum Commands {
     /// Returns a random item from `items`.
     Choose {
-        #[arg(num_args = 1..)]
+        #[arg(required = true)]
         items: Vec<String>,
     },
     /// Returns the multiplicative inverse of `val`.
     Inv { val: i128 },
-    /// Returns `lhs` plus `rhs`.
-    Add { lhs: i128, rhs: i128 },
-    /// Returns `lhs` minus `rhs`.
-    Sub { lhs: i128, rhs: i128 },
-    /// Returns `lhs` multiplied by `rhs`.
-    Mul { lhs: i128, rhs: i128 },
-    /// Returns `lhs` divided by `rhs`.
-    Div { lhs: i128, rhs: i128 },
+    /// Returns the sum of `items`.
+    Add { items: Vec<i128> },
+    /// Returns the product of `items`.
+    Mul { items: Vec<i128> },
     /// Returns `base` to the power of `exp`.
     Pow { base: i128, exp: u64 },
     /// Returns the prime factors of `val`.
@@ -68,10 +64,14 @@ impl Cli {
                 items.choose(&mut rng).unwrap().to_string()
             }
             Commands::Inv { val } => ModInt998244353::new(val).inv().to_string(),
-            Commands::Add { lhs, rhs } => (ModInt998244353::new(lhs) + rhs).to_string(),
-            Commands::Sub { lhs, rhs } => (ModInt998244353::new(lhs) - rhs).to_string(),
-            Commands::Mul { lhs, rhs } => (ModInt998244353::new(lhs) * rhs).to_string(),
-            Commands::Div { lhs, rhs } => (ModInt998244353::new(lhs) / rhs).to_string(),
+            Commands::Add { items } => items
+                .iter()
+                .fold(ModInt998244353::new(0), |acc, &item| acc + item)
+                .to_string(),
+            Commands::Mul { items } => items
+                .iter()
+                .fold(ModInt998244353::new(1), |acc, &item| acc * item)
+                .to_string(),
             Commands::Pow { base, exp } => ModInt998244353::new(base).pow(exp).to_string(),
             Commands::Factorize { val } => {
                 let mut res = BTreeMap::new();
