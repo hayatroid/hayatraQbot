@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 use ac_library::ModInt998244353;
 use clap::{Parser, Subcommand};
 use itertools::Itertools;
+use tokio::time::{Duration, timeout};
 
 #[derive(Parser)]
 #[command(name = "@BOT_hayatroid", no_binary_name = true)]
@@ -32,20 +33,26 @@ enum Commands {
 impl Cli {
     pub async fn run(&self) -> String {
         let cmd = self.command.clone();
-        let handle = tokio::spawn(async { Self::execute(cmd) });
-        match handle.await {
-            Ok(res) => res,
-            Err(e) => {
-                if e.is_panic() {
-                    let e = e.into_panic();
-                    if let Some(msg) = e.downcast_ref::<&str>() {
-                        return format!("```txt\n{}\n```", msg.trim());
+        let mut handle = tokio::spawn(async { Self::execute(cmd) });
+        match timeout(Duration::from_secs(2), &mut handle).await {
+            Ok(join_res) => match join_res {
+                Ok(res) => res,
+                Err(e) => {
+                    if e.is_panic() {
+                        let e = e.into_panic();
+                        if let Some(msg) = e.downcast_ref::<&str>() {
+                            return format!("```txt\n{}\n```", msg.trim());
+                        }
+                        if let Some(msg) = e.downcast_ref::<String>() {
+                            return format!("```txt\n{}\n```", msg.trim());
+                        }
                     }
-                    if let Some(msg) = e.downcast_ref::<String>() {
-                        return format!("```txt\n{}\n```", msg.trim());
-                    }
+                    ":internal_error:".to_string()
                 }
-                ":internal_error:".to_string()
+            },
+            Err(_) => {
+                handle.abort();
+                ":time_limit_exceeded:".to_string()
             }
         }
     }
