@@ -33,7 +33,7 @@ enum Commands {
 impl Cli {
     pub async fn run(&self) -> String {
         let cmd = self.command.clone();
-        let mut handle = tokio::spawn(async { Self::execute(cmd) });
+        let mut handle = tokio::spawn(async { Self::execute(cmd).await });
         match timeout(Duration::from_secs(2), &mut handle).await {
             Ok(join_res) => match join_res {
                 Ok(res) => res,
@@ -56,7 +56,7 @@ impl Cli {
             }
         }
     }
-    fn execute(cmd: Commands) -> String {
+    async fn execute(cmd: Commands) -> String {
         match cmd {
             Commands::Inv { val } => ModInt998244353::new(val).inv().to_string(),
             Commands::Add { lhs, rhs } => (ModInt998244353::new(lhs) + rhs).to_string(),
@@ -68,6 +68,7 @@ impl Cli {
                 let mut res = BTreeMap::new();
                 let mut tmp = val;
                 for i in (2..).take_while(|i| i * i <= val) {
+                    tokio::task::yield_now().await;
                     while tmp % i == 0 {
                         *res.entry(i).or_insert(0) += 1;
                         tmp /= i;
