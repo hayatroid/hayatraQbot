@@ -11,17 +11,17 @@ pub struct Cli {
 #[derive(Subcommand, Clone)]
 enum Commands {
     /// Returns the multiplicative inverse of `val`.
-    Inv { val: u64 },
+    Inv { val: i128 },
     /// Returns `lhs` plus `rhs`.
-    Add { lhs: u64, rhs: u64 },
+    Add { lhs: i128, rhs: i128 },
     /// Returns `lhs` minus `rhs`.
-    Sub { lhs: u64, rhs: u64 },
+    Sub { lhs: i128, rhs: i128 },
     /// Returns `lhs` multiplied by `rhs`.
-    Mul { lhs: u64, rhs: u64 },
+    Mul { lhs: i128, rhs: i128 },
     /// Returns `lhs` divided by `rhs`.
-    Div { lhs: u64, rhs: u64 },
+    Div { lhs: i128, rhs: i128 },
     /// Returns `base` to the power of `exp`.
-    Pow { base: u64, exp: u64 },
+    Pow { base: i128, exp: u64 },
 }
 
 impl Cli {
