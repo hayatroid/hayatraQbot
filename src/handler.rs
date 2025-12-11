@@ -15,7 +15,7 @@ use traq_ws_bot::{
 use crate::cli::Cli;
 
 pub async fn handle_message_created(event: MessageCreated, configuration: Arc<Configuration>) {
-    let content = match Cli::try_parse_from(event.message.plain_text.split_whitespace().skip(1)) {
+    let content = match Cli::try_parse_from(event.message.plain_text.split_whitespace()) {
         Ok(cli) => cli.run().await,
         Err(e) => format!("```txt\n{}\n```", e.render().to_string().trim()),
     };
@@ -34,7 +34,9 @@ pub async fn handle_direct_message_created(
     event: DirectMessageCreated,
     configuration: Arc<Configuration>,
 ) {
-    let content = match Cli::try_parse_from(event.message.plain_text.split_whitespace()) {
+    let content = match Cli::try_parse_from(
+        format!("@BOT_hayatroid {}", event.message.plain_text).split_whitespace(),
+    ) {
         Ok(cli) => cli.run().await,
         Err(e) => format!("```txt\n{}\n```", e.render().to_string().trim()),
     };

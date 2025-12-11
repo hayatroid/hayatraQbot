@@ -7,7 +7,6 @@ use rand::seq::IndexedRandom;
 use tokio::time::{Duration, timeout};
 
 #[derive(Parser)]
-#[command(name = "@BOT_hayatroid", no_binary_name = true)]
 pub struct Cli {
     #[command(subcommand)]
     command: Commands,
