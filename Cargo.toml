@@ -7,5 +7,6 @@ edition = "2024"
 ac-library-rs = "0.2.0"
 clap = { version = "4.5.53", features = ["derive"] }
 itertools = "0.14.0"
+rand = "0.9.2"
 tokio = "1.48.0"
 traq-ws-bot = { version = "0.1.2", features = ["openapi"] }

@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 use ac_library::ModInt998244353;
 use clap::{Parser, Subcommand};
 use itertools::Itertools;
+use rand::seq::IndexedRandom;
 use tokio::time::{Duration, timeout};
 
 #[derive(Parser)]
@@ -14,6 +15,11 @@ pub struct Cli {
 
 #[derive(Subcommand, Clone)]
 enum Commands {
+    /// Returns a random item from `items`.
+    Choose {
+        #[arg(num_args = 1..)]
+        items: Vec<String>,
+    },
     /// Returns the multiplicative inverse of `val`.
     Inv { val: i128 },
     /// Returns `lhs` plus `rhs`.
@@ -58,6 +64,10 @@ impl Cli {
     }
     async fn execute(cmd: Commands) -> String {
         match cmd {
+            Commands::Choose { items } => {
+                let mut rng = rand::rng();
+                items.choose(&mut rng).unwrap().to_string()
+            }
             Commands::Inv { val } => ModInt998244353::new(val).inv().to_string(),
             Commands::Add { lhs, rhs } => (ModInt998244353::new(lhs) + rhs).to_string(),
             Commands::Sub { lhs, rhs } => (ModInt998244353::new(lhs) - rhs).to_string(),
