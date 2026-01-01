@@ -17,15 +17,11 @@ pub async fn handle_message_created(event: MessageCreated, resource: Arc<Resourc
         Ok(cli) => cli.run(message.clone(), resource.clone()).await,
         Err(e) => format!("```txt\n{}\n```", e.render().to_string().trim()),
     };
-    let _ = post_message(
-        &resource.conf,
-        &message.channel_id,
-        Some(PostMessageRequest {
-            content,
-            embed: Some(false),
-        }),
-    )
-    .await;
+    let req = PostMessageRequest {
+        content,
+        ..Default::default()
+    };
+    let _ = post_message(&resource.conf, &message.channel_id, Some(req)).await;
 }
 
 pub async fn handle_direct_message_created(event: DirectMessageCreated, resource: Arc<Resource>) {
@@ -36,15 +32,11 @@ pub async fn handle_direct_message_created(event: DirectMessageCreated, resource
         Ok(cli) => cli.run(message.clone(), resource.clone()).await,
         Err(e) => format!("```txt\n{}\n```", e.render().to_string().trim()),
     };
-    let _ = post_message(
-        &resource.conf,
-        &message.channel_id,
-        Some(PostMessageRequest {
-            content,
-            embed: Some(false),
-        }),
-    )
-    .await;
+    let req = PostMessageRequest {
+        content,
+        ..Default::default()
+    };
+    let _ = post_message(&resource.conf, &message.channel_id, Some(req)).await;
 }
 
 pub async fn handle_bot_message_stamps_updated(
@@ -58,15 +50,11 @@ pub async fn handle_bot_message_stamps_updated(
         .iter()
         .any(|stamp| stamp.stamp_id == WASTEBASKET && stamp.user_id == ME && stamp.count > 0)
     {
-        let _ = edit_message(
-            &resource.conf,
-            &event.message_id,
-            Some(PostMessageRequest {
-                content: "\u{200b}".to_string(),
-                embed: Some(false),
-            }),
-        )
-        .await;
+        let req = PostMessageRequest {
+            content: "\u{200b}".to_string(),
+            ..Default::default()
+        };
+        let _ = edit_message(&resource.conf, &event.message_id, Some(req)).await;
         let _ = delete_message(&resource.conf, &event.message_id).await;
     }
 }

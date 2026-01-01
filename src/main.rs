@@ -28,25 +28,22 @@ async fn main() {
 
     {
         // 毎時 𝑩𝑰𝑮 𝑮𝑼𝑬𝑼𝑬 するスレ
+        const GUEUE_CHANNEL: &str = "019b78f2-fa78-76a8-81f8-b93c2fcb4c86";
+        let mut interval = interval(Duration::from_secs(3600));
         let conf = conf.clone();
         let gueue = gueue.clone();
         tokio::spawn(async move {
-            let mut interval = interval(Duration::from_secs(3600));
             loop {
                 interval.tick().await;
                 if let Some((_, user_name, message_id)) = gueue.lock().await.pop() {
-                    let _ = post_message(
-                        &conf,
-                        "019b78f2-fa78-76a8-81f8-b93c2fcb4c86",
-                        Some(PostMessageRequest {
-                            content: format!(
-                                "@{} ぎゅー！\n\nhttps://q.trap.jp/messages/{}",
-                                user_name, message_id
-                            ),
-                            embed: Some(true),
-                        }),
-                    )
-                    .await;
+                    let req = PostMessageRequest {
+                        content: format!(
+                            "@{} ぎゅー！\n\nhttps://q.trap.jp/messages/{}",
+                            user_name, message_id
+                        ),
+                        embed: Some(true),
+                    };
+                    let _ = post_message(&conf, GUEUE_CHANNEL, Some(req)).await;
                 }
             }
         });
