@@ -3,10 +3,12 @@ use std::{collections::BTreeMap, sync::Arc};
 use ac_library::ModInt998244353;
 use clap::{Parser, Subcommand};
 use itertools::Itertools;
-use rand::seq::IndexedRandom;
+use rand::{Rng, seq::IndexedRandom};
 use serde::Deserialize;
 use tokio::time::{Duration, timeout};
 use traq_ws_bot::events::common::Message;
+
+use crate::Resource;
 
 #[derive(Parser)]
 pub struct Cli {
@@ -33,13 +35,15 @@ enum Commands {
     Factorize { val: u64 },
     /// Returns the rating of AtCoder algo.
     Rating,
+    /// Returns 𝑩𝑰𝑮 𝑮𝑼𝑬𝑼𝑬
+    Gueue,
 }
 
 impl Cli {
-    pub async fn run(&self, message: Arc<Message>) -> String {
+    pub async fn run(&self, message: Arc<Message>, resource: Arc<Resource>) -> String {
         let cmd = self.command.clone();
-        let mut handle = tokio::spawn(async { Self::execute(cmd, message).await });
-        match timeout(Duration::from_secs(2), &mut handle).await {
+        let mut handle = tokio::spawn(async { Self::execute(cmd, message, resource).await });
+        match timeout(Duration::from_secs(10), &mut handle).await {
             Ok(join_res) => match join_res {
                 Ok(res) => res,
                 Err(e) => {
@@ -61,7 +65,7 @@ impl Cli {
             }
         }
     }
-    async fn execute(cmd: Commands, message: Arc<Message>) -> String {
+    async fn execute(cmd: Commands, message: Arc<Message>, resource: Arc<Resource>) -> String {
         match cmd {
             Commands::Choose { items } => {
                 let mut rng = rand::rng();
@@ -119,6 +123,21 @@ impl Cli {
                 } else {
                     "[traPortfolio に AtCoder ID を紐づけなさ～～～い！！！](https://portfolio-admin.trap.jp/user/accounts)".to_string()
                 }
+            }
+            Commands::Gueue => {
+                let priority = {
+                    let mut rng = rand::rng();
+                    rng.random::<u8>()
+                };
+                resource.gueue.lock().await.push((
+                    priority,
+                    message.user.name.clone(),
+                    message.id.clone(),
+                ));
+                format!(
+                    "優先度付きぎゅーに ({}, :@{}:) を挿入しました！",
+                    priority, message.user.name
+                )
             }
         }
     }
